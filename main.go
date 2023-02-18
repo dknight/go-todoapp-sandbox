@@ -23,18 +23,22 @@ const (
 )
 
 var (
-	dbConnString string
-	port         string
-	db           *sql.DB
+	dbConnString     string
+	serverConnString string
+	port             string
+	db               *sql.DB
+	config           Config
 )
 
 func init() {
 	var err error
-	dbConnString = "postgresql://postgres:123456@localhost:5432/todoapp?sslmode=disable"
-	port = os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = EnvDev
 	}
+	config = NewConfig(env)
+	dbConnString = config.DBConnectionString()
+	serverConnString = config.ServerConnectionString()
 	db, err = sql.Open("postgres", dbConnString)
 	if err != nil {
 		log.Fatal(err)
@@ -60,7 +64,7 @@ func main() {
 	app.Delete("/items/:id", func(c *fiber.Ctx) error {
 		return deleteHandler(c, db)
 	})
-	log.Fatalln(app.Listen(":" + port))
+	log.Fatalln(app.Listen(serverConnString))
 }
 
 func indexHandler(ctx *fiber.Ctx, db *sql.DB) error {

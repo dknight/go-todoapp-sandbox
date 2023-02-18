@@ -3,6 +3,7 @@ module dknight/go-todoapp
 go 1.19
 
 require (
+	github.com/BurntSushi/toml v0.3.1
 	github.com/blockloop/scan v1.3.0
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/gofiber/template v1.7.5
