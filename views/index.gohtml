@@ -1,0 +1,25 @@
+{{template "header"}}
+
+<section>
+  <h2>Add new item</h2>
+  <form method="post" action="/items" id="items-form">
+    <label for="task">Task</label>
+    <input type="text" name="Task" id="Task" class="long-field custom-field" required>
+    <label for="Status">
+      <input type="checkbox" id="Status" name="Status">
+      Completed
+    </label>
+    <button type="submit" id="submit-btn">Add task</button>
+  </form>
+</section>
+
+<section>
+  <h2>Todo items</h2>
+  <div id="items" role="group">
+  {{range .Items}}
+    {{template "item" .}}
+  {{end}}
+  </div>
+</section>
+
+{{template "footer"}}

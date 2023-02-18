@@ -1,0 +1,13 @@
+.long-field {
+  width: 100%;
+}
+
+.custom-field:user-invalid,
+.custom-field:-moz-ui-invalid {
+  outline: 4px solid #c00;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
