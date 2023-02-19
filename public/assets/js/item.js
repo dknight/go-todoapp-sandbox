@@ -10,7 +10,7 @@ class TodoItem extends HTMLElement {
         const datetime = this.getAttribute('todo-datetime');
         const datetimeFormatted = new Intl.DateTimeFormat('et-EE', {
             dateStyle: 'short',
-            timeStyle: 'medium',
+            timeStyle: 'short',
         }).format(new Date(datetime));
         const completed = this.hasAttribute('todo-completed');
         const task = this.getAttribute('todo-task');
@@ -19,13 +19,9 @@ class TodoItem extends HTMLElement {
             <style>
             :host {
               display: block;
-              border: 1px solid var(--border);
+              margin: 1rem 0;
               padding: 1rem;
-              margin-bottom: 1rem;
               border-radius: 5px;
-            }
-            :host(:not([todo-completed]):hover) {
-              border-color: var(--code);
             }
             :host(.-added) {
               animation: fade-in .8s ease-out;
@@ -42,6 +38,18 @@ class TodoItem extends HTMLElement {
             :host([todo-completed]) .task-content {
               text-decoration: line-through;
             }
+            .actions {
+                display: flex;
+                gap: .5rem;
+                visibility: hidden;
+            }
+            :host(:hover) .actions {
+                visibility: visible;
+            }
+            header {
+              display: flex;
+              gap: .7rem;
+            }
             time {
               color: var(--text-light);
             }
@@ -49,8 +57,6 @@ class TodoItem extends HTMLElement {
               display: flex;
               align-items: flex-start;
               gap: .7rem;
-              margin-block-start: .5rem;
-              margin-block-end: .5rem;
             }
             input[type="checkbox"] {
               min-width: 1.5rem;
@@ -85,22 +91,18 @@ class TodoItem extends HTMLElement {
             .-error {
               color: #f30;
             }
-            footer {
-              display: flex;
-              gap: 1rem;
-            }
             </style>
             <header>
                 <time datetime="${datetime}">${datetimeFormatted}</time>
+                <div class="actions">
+                    <a class="delete" href="/items/${id}">Delete</a>
+                    <a class="edit" href="/items/${id}">Edit</a>
+                </div>
             </header>
             <form method="PUT" action="/items/${id}" class="task">
                 <input type="checkbox" name="Status" ${completed ? 'checked' :''}>
                 <span class="task-content">${task}</span>
             </form>
-            <footer>
-                <a class="delete" href="/items/${id}">Delete</a>
-                <a class="edit" href="/items/${id}">Edit</a>
-            </footer>
         `;
         this.shadow.innerHTML = tpl;
 
@@ -185,6 +187,13 @@ class TodoItem extends HTMLElement {
                 this.editFormElem.insertAdjacentElement('beforebegin', errElem);
             }
             console.error(errMsg);
+        }
+        if (!this.editMode) {
+            if (this.statusCheckbox.checked) {
+                this.setAttribute('todo-completed', '');
+            } else {
+                this.removeAttribute('todo-completed');
+            }
         }
         if (e.type === 'change') {
             return;

@@ -16,8 +16,13 @@
 <section>
   <h2>Todo items</h2>
   <div id="items" role="group">
-  {{range .Items}}
-    {{template "item" .}}
+  {{if ne (len .Items) 0}}
+    <details open>
+      <summary>My first list</summary>
+      {{range .Items}}
+        {{template "item" .}}
+      {{end}}
+    </details>
   {{end}}
   </div>
 </section>

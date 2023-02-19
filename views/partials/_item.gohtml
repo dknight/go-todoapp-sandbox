@@ -1,7 +1,7 @@
 {{define "item"}}
-<todo-item todo-id="{{.ID}}" 
+<todo-item todo-id="{{.ID}}"
            todo-task={{.Task}}
-           todo-datetime="{{.CreatedAt.Format "2006-01-02 15:04:05"}}"
+           todo-datetime="{{.CreatedAt.Format "2006-01-02 15:04"}}"
       {{if .Status}}todo-completed{{end}}>
 </todo-item>
 {{end}}
