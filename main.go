@@ -6,10 +6,12 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
@@ -20,6 +22,7 @@ import (
 const (
 	viewsDir  = "./views"
 	publicDir = "./public"
+	logDir    = "./logs"
 )
 
 var (
@@ -28,6 +31,7 @@ var (
 	port             string
 	db               *sql.DB
 	config           Config
+	logger           *log.Logger // TODO make err, info, warn, err logger
 )
 
 func init() {
@@ -43,6 +47,13 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	logfile := fmt.Sprintf("%s/%s.log", logDir, time.Now().Format("2006-01-02"))
+	fp, err := os.OpenFile(logfile, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
+	if err != nil {
+		log.Fatal(err)
+	}
+	logger = log.New(fp, "", log.LstdFlags)
+	logger.Println("App started")
 }
 
 func main() {
@@ -73,6 +84,7 @@ func indexHandler(ctx *fiber.Ctx, db *sql.DB) error {
 		log.Println(err)
 		return errors.New("Error: cannot get todo items")
 	}
+	logger.Println("Listing items")
 	return ctx.Render("index", fiber.Map{
 		"Items": items,
 	})
@@ -81,14 +93,15 @@ func indexHandler(ctx *fiber.Ctx, db *sql.DB) error {
 func postHandler(ctx *fiber.Ctx, db *sql.DB) error {
 	item := TodoItem{}
 	if err := ctx.BodyParser(&item); err != nil {
-		log.Println(err)
+		logger.Println(err)
 		return ctx.Status(http.StatusInternalServerError).SendString(err.Error())
 	}
 	id, err := item.Create(db)
 	if err != nil {
-		log.Println(err)
+		logger.Println(err)
 		return ctx.Status(http.StatusInternalServerError).SendString(err.Error())
 	}
+	logger.Printf("Item created: %+v\n", item)
 	idStr := strconv.FormatInt(id, 10)
 	return ctx.Status(http.StatusCreated).SendString(idStr)
 }
@@ -97,12 +110,12 @@ func putHandler(ctx *fiber.Ctx, db *sql.DB) error {
 	id := ctx.Params("id")
 	item := FindItem(db, id) // pointer
 	if item == nil {
-		log.Println(ErrItemNotFound)
+		logger.Println(ErrItemNotFound)
 		return ctx.Status(http.StatusNotFound).SendString(ErrItemNotFound.Error())
 	}
 
 	if err := ctx.BodyParser(item); err != nil {
-		log.Println(err)
+		logger.Println(err)
 		return ctx.Status(http.StatusInternalServerError).SendString(err.Error())
 	}
 
@@ -111,9 +124,10 @@ func putHandler(ctx *fiber.Ctx, db *sql.DB) error {
 	}
 	err := item.Save(db)
 	if err != nil {
-		log.Println(err)
+		logger.Println(err)
 		return ctx.Status(http.StatusInternalServerError).SendString(err.Error())
 	}
+	logger.Printf("Item updated: %+v\n", item)
 	return ctx.Status(http.StatusOK).JSON(item)
 }
 
@@ -121,14 +135,15 @@ func deleteHandler(ctx *fiber.Ctx, db *sql.DB) error {
 	id := ctx.Params("id")
 	item := FindItem(db, id) // pointer
 	if item == nil {
-		log.Println(ErrItemNotFound)
+		logger.Println(ErrItemNotFound)
 		return ctx.Status(http.StatusNotFound).SendString(ErrItemNotFound.Error())
 	}
 
 	err := item.Delete(db)
 	if err != nil {
-		log.Println(ErrCannotDeleteItem)
+		logger.Println(ErrCannotDeleteItem)
 		return ctx.Status(http.StatusInternalServerError).SendString(ErrCannotDeleteItem.Error())
 	}
+	logger.Printf("Item deleted: %v\n", *item)
 	return ctx.Status(http.StatusNoContent).SendString("")
 }

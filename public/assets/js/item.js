@@ -2,6 +2,7 @@ class TodoItem extends HTMLElement {
     constructor() {
         super();
         this.shadow = this.attachShadow({mode: 'open'});
+        this.editMode = false;
     }
 
     connectedCallback() {
@@ -102,31 +103,25 @@ class TodoItem extends HTMLElement {
             </footer>
         `;
         this.shadow.innerHTML = tpl;
-        
+
         this.taskContentElem = this.shadow.querySelector('.task-content');
-        
+
         this.deleteElem = this.shadow.querySelector('.delete');
         this.deleteElem.addEventListener('click', this.delete.bind(this));
 
         this.editElem = this.shadow.querySelector('.edit');
-        this.editElem.addEventListener('click', this.createEditField.bind(this));
+        this.editElem.addEventListener('click', this.edit.bind(this));
 
         this.editFormElem = this.shadow.querySelector('.task');
         this.editFormElem.addEventListener('submit', this.update.bind(this));
 
         this.statusCheckbox = this.shadow.querySelector('[type="checkbox"]');
-        this.statusCheckbox.addEventListener('change', (e) => {
-            this.update(e);
-            if (e.target.checked) {
-                this.setAttribute('todo-completed', '');
-            } else {
-                this.removeAttribute('todo-completed');
-            }
-        });
+        this.statusCheckbox.addEventListener('change', this.update.bind(this));
     }
 
-    createEditField(e) {
+    edit(e) {
         e.preventDefault();
+        this.editMode = true;
         const id = this.getAttribute('todo-id');
 
         const editContainer = document.createElement('div');
@@ -154,32 +149,23 @@ class TodoItem extends HTMLElement {
         this.taskContentElem.hidden = true;
         e.target.hidden = true;
 
+        this.removeAttribute('todo-completed');
+
         input.addEventListener('keydown', (e) => {
             if(e.key === 'Escape') {
                 this.taskContentElem.hidden = false;
                 this.editElem.hidden = false;
+                this.editMode = false;
+
+                if (this.statusCheckbox.checked) {
+                    this.setAttribute('todo-completed', '');
+                } else {
+                    this.removeAttribute('todo-completed');
+                }
                 editContainer.remove();
                 return;
             }
         });
-    }
-
-    async delete(e) {
-        e.preventDefault();
-        if (!confirm("Are you sure?")) {
-            return;
-        }
-        const target = e.target;
-        const href = target.href;
-        const resp = await fetch(href, {
-            method: 'DELETE',
-        });
-        if (resp.ok) {
-            this.classList.add('-deleted');
-            this.addEventListener('transitionend', (evt) => evt.target.remove());
-        } else {
-            console.error(resp.statusText);
-        }
     }
 
     async update(e) {
@@ -200,6 +186,9 @@ class TodoItem extends HTMLElement {
             }
             console.error(errMsg);
         }
+        if (e.type === 'change') {
+            return;
+        }
         this.editElem.hidden = false;
         this.taskContentElem.hidden = false;
         if (data.get('Task')) {
@@ -207,6 +196,24 @@ class TodoItem extends HTMLElement {
         }
         const container = this.shadow.querySelector('.edit-container');
         container && container.remove();
+    }
+
+    async delete(e) {
+        e.preventDefault();
+        if (!confirm("Are you sure?")) {
+            return;
+        }
+        const target = e.target;
+        const href = target.href;
+        const resp = await fetch(href, {
+            method: 'DELETE',
+        });
+        if (resp.ok) {
+            this.classList.add('-deleted');
+            this.addEventListener('transitionend', (evt) => evt.target.remove());
+        } else {
+            console.error(resp.statusText);
+        }
     }
 }
 

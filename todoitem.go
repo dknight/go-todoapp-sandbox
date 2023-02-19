@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"time"
 
 	"github.com/blockloop/scan"
@@ -59,7 +58,6 @@ func (ti TodoItem) Create(db *sql.DB) (int64, error) {
 			"INSERT INTO items (task, status) VALUES ($1, $2) RETURNING id",
 			ti.Task, ti.Status).Scan(&id)
 		if err != nil {
-			log.Println(err)
 			return 0, err
 		}
 		return id, nil
