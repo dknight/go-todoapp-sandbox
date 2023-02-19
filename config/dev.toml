@@ -1,0 +1,11 @@
+[server]
+address = "127.0.0.1"
+port = "8080"
+Secure = false
+
+[database]
+user = "postgres"
+password = "123456" # use secret
+server = "localhost"
+port = "5432"
+dbname = "todoapp"
