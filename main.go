@@ -75,6 +75,9 @@ func main() {
 	app.Delete("/items/:id", func(c *fiber.Ctx) error {
 		return deleteHandler(c, db)
 	})
+
+	app.Get("/ping", ping)
+	app.Get("/instance", instance)
 	log.Fatalln(app.Listen(serverConnString))
 }
 
@@ -146,4 +149,20 @@ func deleteHandler(ctx *fiber.Ctx, db *sql.DB) error {
 	}
 	logger.Printf("Item deleted: %v\n", *item)
 	return ctx.Status(http.StatusNoContent).SendString("")
+}
+
+func ping(ctx *fiber.Ctx) error {
+	return ctx.SendString("PING")
+}
+
+func instance(ctx *fiber.Ctx) error {
+	resp, err := http.Get("http://169.254.169.254/latest/meta-data/instance-id")
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	bs := make([]byte, resp.ContentLength)
+	resp.Body.Read(bs)
+	resp.Body.Close()
+	return ctx.SendString(string(bs))
 }
