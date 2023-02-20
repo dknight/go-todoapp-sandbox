@@ -1,0 +1,14 @@
+[Unit]
+Description=Go Server
+
+[Service]
+ExecStart=/home/ec2-user/app/todoapp
+User=root
+Group=root
+Restart=always
+Environment=ENV=prod
+WorkingDirectory=/home/ec2-user/app/
+
+[Install]
+WantedBy=multi-user.target
+
