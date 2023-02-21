@@ -6,6 +6,6 @@ Secure = false
 [database]
 user = "postgres"
 password = "123456" # use secret
+dbname = "todoapp"
 server = "localhost"
 port = "5432"
-dbname = "todoapp"
