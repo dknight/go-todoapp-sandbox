@@ -82,7 +82,7 @@ func main() {
 }
 
 func indexHandler(ctx *fiber.Ctx, db *sql.DB) error {
-	items, err := ListTodoItems(db)
+	items, err := models.ListTodoItems(db)
 	if err != nil {
 		log.Println(err)
 		return errors.New("Error: cannot get todo items")
@@ -94,7 +94,7 @@ func indexHandler(ctx *fiber.Ctx, db *sql.DB) error {
 }
 
 func postHandler(ctx *fiber.Ctx, db *sql.DB) error {
-	item := TodoItem{}
+	item := models.TodoItem{}
 	if err := ctx.BodyParser(&item); err != nil {
 		logger.Println(err)
 		return ctx.Status(http.StatusInternalServerError).SendString(err.Error())
@@ -111,7 +111,7 @@ func postHandler(ctx *fiber.Ctx, db *sql.DB) error {
 
 func putHandler(ctx *fiber.Ctx, db *sql.DB) error {
 	id := ctx.Params("id")
-	item := FindItem(db, id) // pointer
+	item := models.FindItem(db, id) // pointer
 	if item == nil {
 		logger.Println(ErrItemNotFound)
 		return ctx.Status(http.StatusNotFound).SendString(ErrItemNotFound.Error())
