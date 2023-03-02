@@ -29,3 +29,8 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
 )
+
+replace (
+	github.com/dknight/go-todoapp-sandbox/controllers => ./controllers
+	github.com/dknight/go-todoapp-sandbox/models => ./models
+)

@@ -5,7 +5,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,7 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	models "github.com/dknight/go-todoapp-sandbox/models"
+	"github.com/dknight/go-todoapp-sandbox/controllers"
+	"github.com/dknight/go-todoapp-sandbox/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 
@@ -64,9 +64,9 @@ func main() {
 	})
 	app.Static("/", publicDir)
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		return indexHandler(c, db)
-	})
+	todoItemControllers = controllers.TodoItemController{db}
+
+	app.Get("/", todoItemControllers.Index)
 	app.Post("/items", func(c *fiber.Ctx) error {
 		return postHandler(c, db)
 	})
@@ -80,18 +80,6 @@ func main() {
 	app.Get("/ping", ping)
 	app.Get("/instance", instance)
 	log.Fatalln(app.Listen(serverConnString))
-}
-
-func indexHandler(ctx *fiber.Ctx, db *sql.DB) error {
-	items, err := models.ListTodoItems(db)
-	if err != nil {
-		log.Println(err)
-		return errors.New("Error: cannot get todo items")
-	}
-	logger.Println("Listing items")
-	return ctx.Render("index", fiber.Map{
-		"Items": items,
-	})
 }
 
 func postHandler(ctx *fiber.Ctx, db *sql.DB) error {
@@ -114,8 +102,8 @@ func putHandler(ctx *fiber.Ctx, db *sql.DB) error {
 	id := ctx.Params("id")
 	item := models.FindItem(db, id) // pointer
 	if item == nil {
-		logger.Println(ErrItemNotFound)
-		return ctx.Status(http.StatusNotFound).SendString(ErrItemNotFound.Error())
+		logger.Println(models.ErrItemNotFound)
+		return ctx.Status(http.StatusNotFound).SendString(models.ErrItemNotFound.Error())
 	}
 
 	if err := ctx.BodyParser(item); err != nil {
@@ -137,16 +125,16 @@ func putHandler(ctx *fiber.Ctx, db *sql.DB) error {
 
 func deleteHandler(ctx *fiber.Ctx, db *sql.DB) error {
 	id := ctx.Params("id")
-	item := FindItem(db, id) // pointer
+	item := models.FindItem(db, id) // pointer
 	if item == nil {
-		logger.Println(ErrItemNotFound)
-		return ctx.Status(http.StatusNotFound).SendString(ErrItemNotFound.Error())
+		logger.Println(models.ErrItemNotFound)
+		return ctx.Status(http.StatusNotFound).SendString(models.ErrItemNotFound.Error())
 	}
 
 	err := item.Delete(db)
 	if err != nil {
-		logger.Println(ErrCannotDeleteItem)
-		return ctx.Status(http.StatusInternalServerError).SendString(ErrCannotDeleteItem.Error())
+		logger.Println(models.ErrCannotDeleteItem)
+		return ctx.Status(http.StatusInternalServerError).SendString(models.ErrCannotDeleteItem.Error())
 	}
 	logger.Printf("Item deleted: %v\n", *item)
 	return ctx.Status(http.StatusNoContent).SendString("")
