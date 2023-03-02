@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/blockloop/scan v1.3.0
+	github.com/dknight/go-todoapp-sandbox/models v0.0.0-20230302165641-9b91cdc6f8de
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/gofiber/template v1.7.5
 	github.com/lib/pq v1.10.7
@@ -12,17 +12,12 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/cosmtrek/air v1.41.0 // indirect
-	github.com/creack/pty v1.1.18 // indirect
-	github.com/fatih/color v1.13.0 // indirect
-	github.com/fsnotify/fsnotify v1.6.0 // indirect
+	github.com/blockloop/scan v1.3.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
-	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/savsgio/dictpool v0.0.0-20221023140959-7bf2e61cea94 // indirect
