@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
-
-	"github.com/blockloop/scan"
+	// For easier scan can be used, but decreases performance.
+	// "github.com/blockloop/scan"
 )
 
 var (
@@ -23,39 +23,51 @@ type TodoItem struct {
 
 func ListTodoItems(db *sql.DB) ([]TodoItem, error) {
 	var items []TodoItem
-	rows, err := db.Query("SELECT id, task, status, created_at FROM " +
-		"items ORDER BY created_at DESC")
+	rows, err := db.Query(`
+		SELECT id, task, status, created_at
+		FROM items
+		ORDER BY created_at DESC`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	err = scan.Rows(&items, rows)
-	if err != nil {
+	for rows.Next() {
+		item := TodoItem{}
+		err := rows.Scan(&item.ID, &item.Task, &item.Status, &item.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 	return items, nil
 }
 
-func FindItem(db *sql.DB, id string) *TodoItem {
-	var item TodoItem
-	rows, err := db.Query("SELECT id, task, status, created_at FROM items "+
-		"WHERE id = $1", id)
-	if err != nil {
-		return nil
+func FindItem(db *sql.DB, id string) (*TodoItem, error) {
+	item := TodoItem{}
+	row := db.QueryRow(`
+		SELECT id, task, status, created_at
+		FROM items
+		WHERE id = $1`, id)
+	if err := row.Err(); err != nil {
+		return nil, err
 	}
-	err = scan.Row(&item, rows)
+
+	err := row.Scan(&item.ID, &item.Task, &item.Status, &item.CreatedAt)
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return &item
+	return &item, nil
 }
 
 func (ti TodoItem) Create(db *sql.DB) (int64, error) {
 	var id int64
 	if ti.Task != "" {
 		err := db.QueryRow(
-			"INSERT INTO items (task, status) VALUES ($1, $2) RETURNING id",
+			`INSERT INTO items (task, status) VALUES ($1, $2) RETURNING id`,
 			ti.Task, ti.Status).Scan(&id)
 		if err != nil {
 			return 0, err
@@ -66,7 +78,7 @@ func (ti TodoItem) Create(db *sql.DB) (int64, error) {
 }
 
 func (ti TodoItem) Save(db *sql.DB) error {
-	_, err := db.Exec("UPDATE items SET task=$1, status=$2 WHERE id=$3",
+	_, err := db.Exec(`UPDATE items SET task=$1, status=$2 WHERE id=$3`,
 		ti.Task, ti.Status, ti.ID)
 	if err != nil {
 		return err
@@ -75,7 +87,7 @@ func (ti TodoItem) Save(db *sql.DB) error {
 }
 
 func (ti TodoItem) Delete(db *sql.DB) error {
-	_, err := db.Exec("DELETE FROM items WHERE id=$1", ti.ID)
+	_, err := db.Exec(`DELETE FROM items WHERE id=$1`, ti.ID)
 	if err != nil {
 		return ErrCannotDeleteItem
 	}

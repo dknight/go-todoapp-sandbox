@@ -52,11 +52,11 @@ func (ctrl TodoItemController) Post(ctx *fiber.Ctx) error {
 
 func (ctrl TodoItemController) Put(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
-	item := models.FindItem(ctrl.db, id) // pointer,
-	if item == nil {
-		ctrl.logger.Println(models.ErrItemNotFound)
-		return ctx.Status(http.StatusNotFound).
-			SendString(models.ErrItemNotFound.Error())
+	item, err := models.FindItem(ctrl.db, id)
+	if err != nil {
+		ctrl.logger.Println(err)
+		return ctx.Status(http.StatusInternalServerError).
+			SendString(err.Error())
 	}
 
 	if err := ctx.BodyParser(item); err != nil {
@@ -68,7 +68,7 @@ func (ctrl TodoItemController) Put(ctx *fiber.Ctx) error {
 	if ctx.FormValue("Status") == "" {
 		item.Status = false
 	}
-	err := item.Save(ctrl.db)
+	err = item.Save(ctrl.db)
 	if err != nil {
 		ctrl.logger.Println(err)
 		return ctx.Status(http.StatusInternalServerError).
@@ -80,14 +80,14 @@ func (ctrl TodoItemController) Put(ctx *fiber.Ctx) error {
 
 func (ctrl TodoItemController) Delete(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
-	item := models.FindItem(ctrl.db, id) // pointer
-	if item == nil {
-		ctrl.logger.Println(models.ErrItemNotFound)
-		return ctx.Status(http.StatusNotFound).
-			SendString(models.ErrItemNotFound.Error())
+	item, err := models.FindItem(ctrl.db, id)
+	if err != nil {
+		ctrl.logger.Println(err)
+		return ctx.Status(http.StatusInternalServerError).
+			SendString(err.Error())
 	}
 
-	err := item.Delete(ctrl.db)
+	err = item.Delete(ctrl.db)
 	if err != nil {
 		ctrl.logger.Println(models.ErrCannotDeleteItem)
 		return ctx.Status(http.StatusInternalServerError).

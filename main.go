@@ -34,17 +34,29 @@ var (
 
 func init() {
 	var err error
+
+	// Environemnt -----------------------
 	env := os.Getenv("ENV")
 	if env == "" {
 		env = EnvDev
 	}
 	config = NewConfig(env)
+
+	// DB --------------------------------
 	dbConnString = config.DBConnectionString()
 	serverConnString = config.ServerConnectionString()
 	db, err = sql.Open("postgres", dbConnString)
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		log.Println("Connection to database succeeded.")
+	}
+
+	// Log -------------------------------
 	logfile := fmt.Sprintf(
 		"%s/%s.log", logDir, time.Now().Format("2006-01-02"),
 	)
@@ -57,6 +69,7 @@ func init() {
 }
 
 func main() {
+	defer db.Close()
 	engine := html.New(viewsDir, ".gohtml")
 	app := fiber.New(fiber.Config{
 		Views: engine,
