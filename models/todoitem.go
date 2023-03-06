@@ -66,6 +66,8 @@ func FindItem(db *sql.DB, id string) (*TodoItem, error) {
 func (ti TodoItem) Create(db *sql.DB) (int64, error) {
 	var id int64
 	if ti.Task != "" {
+		// Postgres doesnt support LastInsertedID(), so we user QueryRow,
+		// instead of Exec.
 		err := db.QueryRow(
 			`INSERT INTO items (task, status) VALUES ($1, $2) RETURNING id`,
 			ti.Task, ti.Status).Scan(&id)
