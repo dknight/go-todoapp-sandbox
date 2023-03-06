@@ -4,14 +4,16 @@ go 1.19
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/dknight/go-todoapp-sandbox/controllers v0.0.0-00010101000000-000000000000
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/gofiber/template v1.7.5
 	github.com/lib/pq v1.10.7
 )
 
+require github.com/dknight/go-todoapp-sandbox/controllers v0.0.0-20230306072119-294cbfd69818
+
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/blockloop/scan v1.3.0 // indirect
 	github.com/dknight/go-todoapp-sandbox/models v0.0.0-20230302165719-08316196e434 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
@@ -27,9 +29,4 @@ require (
 	github.com/valyala/fasthttp v1.44.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
-)
-
-replace (
-	github.com/dknight/go-todoapp-sandbox/controllers => ./controllers
-	github.com/dknight/go-todoapp-sandbox/models => ./models
 )
