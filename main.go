@@ -47,6 +47,7 @@ func init() {
 
 func main() {
 	defer env.DB.Close()
+
 	engine := html.New(viewsDir, ".gohtml")
 	app := fiber.New(fiber.Config{
 		Views: engine,
