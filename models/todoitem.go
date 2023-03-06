@@ -47,8 +47,7 @@ func ListTodoItems(db *sql.DB) ([]TodoItem, error) {
 	return items, nil
 }
 
-// FIXME id - int
-func FindItem(db *sql.DB, id string) (*TodoItem, error) {
+func FindItem(db *sql.DB, id int) (*TodoItem, error) {
 	item := TodoItem{}
 	row := db.QueryRow(`
 		SELECT id, task, status, created_at
