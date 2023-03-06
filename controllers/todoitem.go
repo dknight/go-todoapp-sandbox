@@ -55,7 +55,7 @@ func (ctrl TodoItemController) Put(ctx *fiber.Ctx) error {
 	item, err := models.FindItem(ctrl.db, id)
 	if err != nil {
 		ctrl.logger.Println(err)
-		return ctx.Status(http.StatusInternalServerError).
+		return ctx.Status(http.StatusBadRequest).
 			SendString(err.Error())
 	}
 
@@ -83,7 +83,7 @@ func (ctrl TodoItemController) Delete(ctx *fiber.Ctx) error {
 	item, err := models.FindItem(ctrl.db, id)
 	if err != nil {
 		ctrl.logger.Println(err)
-		return ctx.Status(http.StatusInternalServerError).
+		return ctx.Status(http.StatusBadRequest).
 			SendString(err.Error())
 	}
 
