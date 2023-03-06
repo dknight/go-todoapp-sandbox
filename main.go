@@ -4,13 +4,11 @@ package main
 // go run github.com/cosmtrek/air
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/dknight/go-todoapp-sandbox/controllers"
+	"github.com/dknight/go-todoapp-sandbox/lib"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
 
@@ -24,60 +22,39 @@ const (
 )
 
 var (
-	dbConnString     string
-	serverConnString string
-	port             string
-	db               *sql.DB
-	config           Config
-	logger           *log.Logger // TODO make err, info, warn, err logger
+	config *lib.Config
+	env    *lib.Env
 )
 
 func init() {
-	var err error
+	envVar := os.Getenv("ENV")
+	config = lib.NewConfig(envVar)
 
-	// Environemnt -----------------------
-	env := os.Getenv("ENV")
-	if env == "" {
-		env = EnvDev
+	env = &lib.Env{
+		Env:    envVar,
+		DB:     lib.NewDB(config),
+		Logger: lib.NewLogger(logDir),
 	}
-	config = NewConfig(env)
+	env.Logger.Println("App started")
 
-	// DB --------------------------------
-	dbConnString = config.DBConnectionString()
-	serverConnString = config.ServerConnectionString()
-	db, err = sql.Open("postgres", dbConnString)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = db.Ping()
+	err := env.DB.Ping()
 	if err != nil {
 		log.Fatal(err)
 	} else {
 		log.Println("Connection to database succeeded.")
 	}
-
-	// Log -------------------------------
-	logfile := fmt.Sprintf(
-		"%s/%s.log", logDir, time.Now().Format("2006-01-02"),
-	)
-	fp, err := os.OpenFile(logfile, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
-	if err != nil {
-		log.Fatal(err)
-	}
-	logger = log.New(fp, "", log.LstdFlags)
-	logger.Println("App started")
 }
 
 func main() {
-	defer db.Close()
+	defer env.DB.Close()
 	engine := html.New(viewsDir, ".gohtml")
 	app := fiber.New(fiber.Config{
 		Views: engine,
 	})
 	app.Static("/", publicDir)
 
-	todoItemController := controllers.NewTodoController(db, logger)
-	systemController := controllers.NewSystemController()
+	todoItemController := controllers.NewTodoController(env)
+	systemController := controllers.NewSystemController(env)
 
 	app.Get("/", todoItemController.Index)
 	app.Post("/items", todoItemController.Post)
@@ -86,5 +63,5 @@ func main() {
 
 	app.Get("/ping", systemController.Ping)
 	app.Get("/instance", systemController.Instance)
-	log.Fatalln(app.Listen(serverConnString))
+	log.Fatalln(app.Listen(config.ServerConnectionString()))
 }

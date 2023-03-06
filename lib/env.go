@@ -5,6 +5,12 @@ import (
 	"log"
 )
 
+const (
+	EnvDev  = "dev"
+	EnvTest = "test"
+	EnvProd = "prod"
+)
+
 type Env struct {
 	Env    string
 	DB     *sql.DB

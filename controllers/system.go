@@ -4,13 +4,16 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/dknight/go-todoapp-sandbox/lib"
 	"github.com/gofiber/fiber/v2"
 )
 
-type SystemController struct{}
+type SystemController struct {
+	env *lib.Env
+}
 
-func NewSystemController() *SystemController {
-	return &SystemController{}
+func NewSystemController(env *lib.Env) *SystemController {
+	return &SystemController{env}
 }
 
 func (ctrl SystemController) Ping(ctx *fiber.Ctx) error {

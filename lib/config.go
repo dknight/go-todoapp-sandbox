@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"fmt"
@@ -9,12 +9,6 @@ import (
 )
 
 const ConfigPath = "./config"
-
-const (
-	EnvDev  = "dev"
-	EnvTest = "test"
-	EnvProd = "prod"
-)
 
 type dbConfig struct {
 	User     string `toml:"user"`
@@ -36,8 +30,11 @@ type Config struct {
 	DB     dbConfig     `toml:"database"`
 }
 
-func NewConfig(env string) Config {
-	config := Config{
+func NewConfig(env string) *Config {
+	if env == "" {
+		env = EnvDev
+	}
+	config := &Config{
 		Env: env,
 	}
 	path := fmt.Sprintf("%s/%s.toml", ConfigPath, config.Env)
@@ -52,6 +49,13 @@ func NewConfig(env string) Config {
 	return config
 }
 
+func (cfg Config) ServerConnectionString() string {
+	return fmt.Sprintf("%s:%s",
+		cfg.Server.Addr,
+		cfg.Server.Port,
+	)
+}
+
 func (cfg Config) DBConnectionString() string {
 	// TODO deal with ssl
 	return fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable",
@@ -60,12 +64,5 @@ func (cfg Config) DBConnectionString() string {
 		cfg.DB.Server,
 		cfg.DB.Port,
 		cfg.DB.Name,
-	)
-}
-
-func (cfg Config) ServerConnectionString() string {
-	return fmt.Sprintf("%s:%s",
-		cfg.Server.Addr,
-		cfg.Server.Port,
 	)
 }
