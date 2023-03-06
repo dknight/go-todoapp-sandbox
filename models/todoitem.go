@@ -19,6 +19,7 @@ type TodoItem struct {
 	Task      string    `db:"task"`
 	Status    bool      `db:"status"`
 	CreatedAt time.Time `db:"created_at"`
+	ListId    int       `db:"list_id"`
 }
 
 func ListTodoItems(db *sql.DB) ([]TodoItem, error) {
@@ -46,6 +47,7 @@ func ListTodoItems(db *sql.DB) ([]TodoItem, error) {
 	return items, nil
 }
 
+// FIXME id - int
 func FindItem(db *sql.DB, id string) (*TodoItem, error) {
 	item := TodoItem{}
 	row := db.QueryRow(`

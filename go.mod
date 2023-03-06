@@ -3,8 +3,8 @@ module dknight/go-todoapp
 go 1.19
 
 require (
-	github.com/dknight/go-todoapp-sandbox/controllers v0.0.0-20230306072119-294cbfd69818
-	github.com/dknight/go-todoapp-sandbox/lib v0.0.0-00010101000000-000000000000
+	github.com/dknight/go-todoapp-sandbox/controllers v0.0.0-20230306110010-96abc1282504
+	github.com/dknight/go-todoapp-sandbox/lib v0.0.0-20230306110010-96abc1282504
 	github.com/gofiber/fiber/v2 v2.42.0
 	github.com/gofiber/template v1.7.5
 	github.com/lib/pq v1.10.7

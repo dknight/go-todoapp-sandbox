@@ -101,6 +101,12 @@ github.com/cpuguy83/go-md2man/v2 v2.0.1/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46t
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dknight/go-todoapp-sandbox/controllers v0.0.0-20230306110010-96abc1282504 h1:GcV+asUtqhiNT8/sB5r9lp4R+iQtHp8bZOrO/8Cvly8=
+github.com/dknight/go-todoapp-sandbox/controllers v0.0.0-20230306110010-96abc1282504/go.mod h1:O+ZarZOi8iSFlWh2OG9Hh3NhkZQIkoXa1x6W8jOVswM=
+github.com/dknight/go-todoapp-sandbox/lib v0.0.0-20230306110010-96abc1282504 h1:XshhI+LVOoIi6FmZFvyNwnsmVfNu6S3KAWWFtXBI5bE=
+github.com/dknight/go-todoapp-sandbox/lib v0.0.0-20230306110010-96abc1282504/go.mod h1:NdW+/kB/XnfdneMf4989mhSqu+fJKclIEr+Pa4KR7rk=
+github.com/dknight/go-todoapp-sandbox/models v0.0.0-20230306072119-294cbfd69818 h1:UbLDHBDLPyRXnQVg0ED/cYoUnmnie5z8KQZIpC+WuUE=
+github.com/dknight/go-todoapp-sandbox/models v0.0.0-20230306072119-294cbfd69818/go.mod h1:zqDDQlE0jwd1cJxodfcNSnjifRNUfKIiiv4+QcYZC5E=
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385/go.mod h1:0vRUJqYpeSZifjYj7uP3BG/gKcuzL9xWVV/Y+cK33KM=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
