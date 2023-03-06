@@ -50,7 +50,12 @@ func (ctrl TodoItemController) Post(ctx *fiber.Ctx) error {
 }
 
 func (ctrl TodoItemController) Put(ctx *fiber.Ctx) error {
-	id := ctx.Params("id")
+	id, err := strconv.Atoi(ctx.Params("id"))
+	if err != nil {
+		ctrl.env.Logger.Println(err)
+		return ctx.Status(http.StatusBadRequest).
+			SendString(err.Error())
+	}
 	item, err := models.FindItem(ctrl.env.DB, id)
 	if err != nil {
 		ctrl.env.Logger.Println(err)
