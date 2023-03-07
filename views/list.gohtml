@@ -1,0 +1,27 @@
+<section>
+  <h2>Add new list</h2>
+  <form method="post" action="/lists" id="lists-form">
+    <label for="Name">Name</label>
+    <input type="text" name="Name" id="Name" class="long-field custom-field" maxlength="100" required>
+    <button type="submit" id="submit-btn">Create</button>
+  </form>
+</section>
+
+<section>
+  <h2>Lists</h2>
+  <ul id="lists">
+    {{range .Lists}}
+    <li>
+      <todo-list-link
+        todo-list-id="{{.ID}}"
+        todo-list-name="{{.Name}}"
+        todo-list-count="{{.ItemsCount}}"
+        todo-list-completed="0"
+      ></todo-list-link>
+    </li>
+    {{end}}
+  </ul>
+</section>
+
+<script async type="module" src="/assets/js/list.js"></script>
+<script async type="module" src="/assets/js/lists-form.js"></script>

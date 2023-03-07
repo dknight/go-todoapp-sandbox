@@ -2,6 +2,7 @@
 <todo-item todo-id="{{.ID}}"
            todo-task={{.Task}}
            todo-datetime="{{.CreatedAt.Format "2006-01-02 15:04"}}"
+           todo-list-id="{{.ListID}}"
       {{if .Status}}todo-completed{{end}}>
 </todo-item>
 {{end}}

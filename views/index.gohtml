@@ -1,10 +1,16 @@
-{{template "header"}}
-
 <section>
   <h2>Add new item</h2>
   <form method="post" action="/items" id="items-form">
-    <label for="task">Task</label>
+    <label for="Task">Task</label>
     <input type="text" name="Task" id="Task" class="long-field custom-field" required>
+
+    <label for="ListID">List</label>
+    <select name="ListID" id="ListID">
+      {{range $i, $list := .Lists}}
+      <option value="{{$list.ID}}" {{if (eq $i 0)}}selected{{end}}>{{$list.Name}}</option>
+      {{end}}
+    </select>
+    or create <a href="/lists/new">new list</a>.
     <label for="Status">
       <input type="checkbox" id="Status" name="Status">
       Completed
@@ -16,15 +22,16 @@
 <section>
   <h2>Todo items</h2>
   <div id="items" role="group">
-  {{if ne (len .Items) 0}}
-    <details open>
-      <summary>My first list</summary>
-      {{range .Items}}
-        {{template "item" .}}
-      {{end}}
-    </details>
+  {{range .Lists}}
+    <todo-list
+      todo-list-id="{{.ID}}"
+      todo-list-name="{{.Name}}"
+      id="todo-list-id-{{.ID}}"
+    ></todo-list>
   {{end}}
   </div>
 </section>
 
-{{template "footer"}}
+<script async type="module" src="/assets/js/items-form.js"></script>
+<script async type="module" src="/assets/js/item.js"></script>
+<script async type="module" src="/assets/js/todolist.js"></script>

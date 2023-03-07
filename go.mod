@@ -30,8 +30,9 @@ require (
 	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect
 )
 
-// replace (
-// 	github.com/dknight/go-todoapp-sandbox/controllers => ./controllers
-// 	github.com/dknight/go-todoapp-sandbox/lib => ./lib
-// 	github.com/dknight/go-todoapp-sandbox/models => ./models
-// )
+// DO NOT COMMIT
+replace (
+	github.com/dknight/go-todoapp-sandbox/controllers => ./controllers
+	github.com/dknight/go-todoapp-sandbox/lib => ./lib
+	github.com/dknight/go-todoapp-sandbox/models => ./models
+)

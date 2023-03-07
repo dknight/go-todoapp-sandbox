@@ -1,6 +1,4 @@
 const formElem = document.getElementById('items-form');
-const itemsElem = document.getElementById('items');
-const listElem = itemsElem.querySelector('details');
 const submitBtn = document.getElementById('submit-btn');
 
 formElem.addEventListener('submit', async (e) => {
@@ -19,8 +17,12 @@ formElem.addEventListener('submit', async (e) => {
         item.setAttribute('todo-task', formData.get('Task'));
         formData.get('Status') && item.setAttribute('todo-completed', '');
         item.classList.add('-added');
-        listElem.prepend(item);
         formElem.reset();
+
+        const todoListElem = document
+            .getElementById(`todo-list-id-${formData.get('ListID')}`);
+        todoListElem.addItem(item);
+
     } else {
         console.error(resp.statusText);
     }

@@ -1,11 +1,12 @@
+// TODO refactor to use observedAttributes.
 class TodoItem extends HTMLElement {
     constructor() {
         super();
         this.shadow = this.attachShadow({mode: 'open'});
-        this.editMode = false;
+        this.editMode = this.hasAttribute('edit');
     }
 
-    connectedCallback() {
+    async connectedCallback() {
         const id = this.getAttribute('todo-id');
         const datetime = this.getAttribute('todo-datetime');
         const datetimeFormatted = new Intl.DateTimeFormat('et-EE', {
@@ -32,7 +33,7 @@ class TodoItem extends HTMLElement {
               opacity: 0;
               border-color: #f00;
             }
-            :host([todo-completed]) {
+            :host([todo-completed]:not([edit])) {
               opacity: .5;
             }
             :host([todo-completed]) .task-content {
@@ -88,6 +89,10 @@ class TodoItem extends HTMLElement {
               width: 100%;
               display: inline-block;
             }
+            .select-field {
+              margin-top: .2rem;
+              width: auto;
+            }
             .-error {
               color: #f30;
             }
@@ -100,7 +105,7 @@ class TodoItem extends HTMLElement {
                 </div>
             </header>
             <form method="PUT" action="/items/${id}" class="task">
-                <input type="checkbox" name="Status" ${completed ? 'checked' :''}>
+                <input type="checkbox" name="Status" ${completed ? 'checked' :''} aria-label="Edit task">
                 <span class="task-content">${task}</span>
             </form>
         `;
@@ -121,10 +126,12 @@ class TodoItem extends HTMLElement {
         this.statusCheckbox.addEventListener('change', this.update.bind(this));
     }
 
-    edit(e) {
+    async edit(e) {
         e.preventDefault();
         this.editMode = true;
+        this.setAttribute('edit', '');
         const id = this.getAttribute('todo-id');
+        const listId = this.getAttribute('todo-list-id');
 
         const editContainer = document.createElement('div');
         editContainer.classList.add('edit-container');
@@ -137,6 +144,25 @@ class TodoItem extends HTMLElement {
         input.required = true;
         input.value = this.taskContentElem.innerText;
         input.focus();
+        input.setAttribute('aria-label', 'Edit task');
+
+        const select = document.createElement('select');
+        select.classList.add('edit-field', 'select-field');
+        select.name = 'ListID';
+        select.setAttribute('aria-label', 'Change list');
+        select.value = listId;
+
+        (async () => {
+            const resp = await fetch('/lists');
+            this.lists = await resp.json();
+            this.lists.map((l) => {
+                const opt = document.createElement('option');
+                opt.value = l.ID;
+                opt.innerText = l.Name;
+                opt.selected = (Number(listId) === l.ID);
+                select.appendChild(opt);
+            });
+        })();
 
         const hint = document.createElement('label');
         hint.classList.add('edit-hint');
@@ -144,6 +170,7 @@ class TodoItem extends HTMLElement {
         hint.setAttribute('for', input.id);
 
         editContainer.append(input);
+        editContainer.append(select);
         editContainer.append(hint);
 
         this.editFormElem.append(editContainer);
@@ -158,6 +185,7 @@ class TodoItem extends HTMLElement {
                 this.taskContentElem.hidden = false;
                 this.editElem.hidden = false;
                 this.editMode = false;
+                this.removeAttribute('edit');
 
                 if (this.statusCheckbox.checked) {
                     this.setAttribute('todo-completed', '');
@@ -188,16 +216,25 @@ class TodoItem extends HTMLElement {
             }
             console.error(errMsg);
         }
-        if (!this.editMode) {
-            if (this.statusCheckbox.checked) {
-                this.setAttribute('todo-completed', '');
-            } else {
-                this.removeAttribute('todo-completed');
-            }
-        }
+
+        this.statusCheckbox.checked
+            ? this.setAttribute('todo-completed', '')
+            : this.removeAttribute('todo-completed');
+
+        // If chekckbox is checked then just return.
         if (e.type === 'change') {
             return;
         }
+        
+        // If list is change move it to another list.
+        const oldListID = this.getAttribute('todo-list-id');
+        const newListID = data.get('ListID');
+        if (oldListID !== newListID) {
+            const newList = document.getElementById(`todo-list-id-${newListID}`);
+            this.setAttribute('todo-list-id', newListID);
+            newList.addItem(this);
+        }
+
         this.editElem.hidden = false;
         this.taskContentElem.hidden = false;
         if (data.get('Task')) {

@@ -50,18 +50,30 @@ func main() {
 
 	engine := html.New(viewsDir, ".gohtml")
 	app := fiber.New(fiber.Config{
-		Views: engine,
+		Views:       engine,
+		ViewsLayout: "base",
 	})
 	app.Static("/", publicDir)
 
 	todoItemController := controllers.NewTodoController(env)
 	systemController := controllers.NewSystemController(env)
+	listController := controllers.NewListController(env)
 
-	app.Get("/", todoItemController.Index)
+	// items
 	app.Post("/items", todoItemController.Post)
+	app.Get("/items/:listid", todoItemController.GetItemsByList)
 	app.Put("/items/:id", todoItemController.Put)
 	app.Delete("/items/:id", todoItemController.Delete)
 
+	// Lists
+	app.Get("/lists", listController.GetLists)
+	app.Get("/lists/new", listController.NewList)
+	app.Post("/lists", listController.Post)
+	app.Put("/lists/:id", listController.Put)
+	app.Delete("/lists/:id", listController.Delete)
+
+	// System
+	app.Get("/", todoItemController.Index) // TODO move index to system?
 	app.Get("/ping", systemController.Ping)
 	app.Get("/instance", systemController.Instance)
 	log.Fatalln(app.Listen(config.ServerConnectionString()))

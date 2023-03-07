@@ -19,13 +19,13 @@ type TodoItem struct {
 	Task      string    `db:"task"`
 	Status    bool      `db:"status"`
 	CreatedAt time.Time `db:"created_at"`
-	ListId    int       `db:"list_id"`
+	ListID    int       `db:"list_id"`
 }
 
 func ListTodoItems(db *sql.DB) ([]TodoItem, error) {
 	var items []TodoItem
 	rows, err := db.Query(`
-		SELECT id, task, status, created_at
+		SELECT id, task, status, created_at, list_id
 		FROM items
 		ORDER BY created_at DESC`)
 	if err != nil {
@@ -35,7 +35,47 @@ func ListTodoItems(db *sql.DB) ([]TodoItem, error) {
 
 	for rows.Next() {
 		item := TodoItem{}
-		err := rows.Scan(&item.ID, &item.Task, &item.Status, &item.CreatedAt)
+		err := rows.Scan(
+			&item.ID,
+			&item.Task,
+			&item.Status,
+			&item.CreatedAt,
+			&item.ListID,
+		)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func FindItemsByListID(db *sql.DB, listID int) ([]TodoItem, error) {
+	var items []TodoItem
+	rows, err := db.Query(`
+		SELECT items.id, task, status, created_at, list_id
+		FROM items
+		INNER JOIN lists
+		ON lists.id=items.list_id
+		WHERE items.list_id=$1
+		ORDER BY created_at DESC`, listID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		item := TodoItem{}
+		err := rows.Scan(
+			&item.ID,
+			&item.Task,
+			&item.Status,
+			&item.CreatedAt,
+			&item.ListID,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -50,14 +90,20 @@ func ListTodoItems(db *sql.DB) ([]TodoItem, error) {
 func FindItem(db *sql.DB, id int) (*TodoItem, error) {
 	item := TodoItem{}
 	row := db.QueryRow(`
-		SELECT id, task, status, created_at
+		SELECT id, task, status, created_at, list_id
 		FROM items
 		WHERE id = $1`, id)
 	if err := row.Err(); err != nil {
 		return nil, err
 	}
 
-	err := row.Scan(&item.ID, &item.Task, &item.Status, &item.CreatedAt)
+	err := row.Scan(
+		&item.ID,
+		&item.Task,
+		&item.Status,
+		&item.CreatedAt,
+		&item.ListID,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -70,8 +116,9 @@ func (ti TodoItem) Create(db *sql.DB) (int64, error) {
 		// Postgres doesnt support LastInsertedID(), so we user QueryRow,
 		// instead of Exec.
 		err := db.QueryRow(
-			`INSERT INTO items (task, status) VALUES ($1, $2) RETURNING id`,
-			ti.Task, ti.Status).Scan(&id)
+			`INSERT INTO items (task, status, list_id) VALUES
+			($1, $2, $3) RETURNING id`,
+			ti.Task, ti.Status, ti.ListID).Scan(&id)
 		if err != nil {
 			return 0, err
 		}
@@ -81,8 +128,11 @@ func (ti TodoItem) Create(db *sql.DB) (int64, error) {
 }
 
 func (ti TodoItem) Save(db *sql.DB) error {
-	_, err := db.Exec(`UPDATE items SET task=$1, status=$2 WHERE id=$3`,
-		ti.Task, ti.Status, ti.ID)
+	_, err := db.Exec(`
+		UPDATE items
+		SET task=$1, status=$2, list_id=$3
+		WHERE id=$4`,
+		ti.Task, ti.Status, ti.ListID, ti.ID)
 	if err != nil {
 		return err
 	}
