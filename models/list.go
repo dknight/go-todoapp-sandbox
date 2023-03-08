@@ -51,7 +51,7 @@ func ListLists(db *sql.DB) ([]List, error) {
 func FindList(db *sql.DB, id int) (*List, error) {
 	list := List{}
 	row := db.QueryRow(`
-		SELECT id, name,
+		SELECT id, name
 		FROM lists
 		WHERE id = $1`, id)
 	if err := row.Err(); err != nil {
