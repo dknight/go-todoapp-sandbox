@@ -1,7 +1,16 @@
+import {html} from '/assets/js/utils.js';
+
 class TodoList extends HTMLElement {
     constructor() {
         super();
         this.shadow = this.attachShadow({mode: 'open'});
+    }
+
+    get styles() {
+       return `
+            <style>
+              :host{}
+            </style>`;
     }
 
     async render() {
@@ -11,30 +20,25 @@ class TodoList extends HTMLElement {
         const items = await resp.json();
 
         this.setAttribute('role', 'list');
-        const styles = `
-        <style>
-          :host {
 
-          }
-        </style>`;
-
-        let tpl = `<h3 class="heading">${this.listName}</h3>`;
+        let tpl = `<h3 class="heading">${html(this.listName)}</h3>`;
         if (items && items.length) {
             tpl += items.reduce((s, item) => s + this._renderItem(item), '');
         }
         tpl += '<hr>';
-        this.shadow.innerHTML = styles + tpl;
+        this.shadow.innerHTML = this.styles + tpl;
     }
 
     _renderItem(item) {
-        return `<todo-item
-            role="listitem"
-            todo-id="${item.ID}"
-            todo-list-id="${item.ListID}"
-            todo-datetime="${item.CreatedAt}"
-            todo-task="${item.Task}"
-            ${item.Status ? 'todo-completed' : ''}
-        ></todo-item>`;
+        return `
+                <todo-item
+                    role="listitem"
+                    todo-id="${item.ID}"
+                    todo-list-id="${item.ListID}"
+                    todo-datetime="${item.CreatedAt}"
+                    todo-task="${item.Task}"
+                    ${item.Status ? 'todo-completed' : ''}
+                ></todo-item>`;
     }
 
     addItem(item) {

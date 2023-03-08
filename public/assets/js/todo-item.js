@@ -1,9 +1,13 @@
 // TODO refactor to use observedAttributes.
+
+import {html} from '/assets/js/utils.js';
+
 class TodoItem extends HTMLElement {
     constructor() {
         super();
         this.shadow = this.attachShadow({mode: 'open'});
         this.editMode = this.hasAttribute('edit');
+        console.log(html)
     }
 
     async connectedCallback() {
@@ -106,7 +110,7 @@ class TodoItem extends HTMLElement {
             </header>
             <form method="PUT" action="/items/${id}" class="task">
                 <input type="checkbox" name="Status" ${completed ? 'checked' :''} aria-label="Edit task">
-                <span class="task-content">${task}</span>
+                <span class="task-content">${html(task)}</span>
             </form>
         `;
         this.shadow.innerHTML = tpl;
@@ -225,7 +229,7 @@ class TodoItem extends HTMLElement {
         if (e.type === 'change') {
             return;
         }
-        
+
         // If list is change move it to another list.
         const oldListID = this.getAttribute('todo-list-id');
         const newListID = data.get('ListID');

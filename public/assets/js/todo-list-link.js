@@ -4,24 +4,8 @@ class TodoListLink extends HTMLElement {
         this.shadow = this.attachShadow({mode: 'open'});
     }
 
-    static get observedAttributes() {
-        return [
-            'todo-list-id',
-            'todo-list-name',
-            'todo-list-count',
-            'todo-list-completed',
-            'edit'
-        ];
-    }
-
-    render() {
-        this.listID = this.getAttribute('todo-list-id');
-        this.listName = this.getAttribute('todo-list-name');
-        this.editMode = this.hasAttribute('edit');
-        this.totalCount = Number(this.getAttribute('todo-list-count'));
-        this.completedCount = Number(this.getAttribute('todo-list-completed'));
-
-        const styles = `
+    get styles() {
+        return `
             <style>
             :host {
               display: block;
@@ -77,12 +61,16 @@ class TodoListLink extends HTMLElement {
               font-size: .9rem;
               margin-top: .2rem;
             }
-            </style>
-        `;
+            </style>`;
+    }
 
-        let tpl;
-        if (this.editMode)  {
-            tpl = `
+    get layouts() {
+        return {
+            default: `
+                <a href="/#todo-list-id-${this.listID}">${this.listName} (${this.totalCount})</a>
+                <button class="icon edit" title="Edit"></button>
+                <button class="icon delete" title="Delete"></button>`,
+            edit: `
                 <form method="PUT" action="/lists/${this.listID}">
                     <input type="text"
                            class="edit-field"
@@ -92,17 +80,29 @@ class TodoListLink extends HTMLElement {
                     <label for="${this.listID}" class="edit-hint">
                       Press Esc to cancel edit, Enter to save.
                     </label>
-                </form>
-                `;
-        } else {
-            tpl = `
-                <a href="/#todo-list-id-${this.listID}">${this.listName} (${this.totalCount})</a>
-                <button class="icon edit" title="Edit"></button>
-                <button class="icon delete" title="Delete"></button>
-                `;
-        }
+                </form>`,
+        };
+    }
 
-        this.shadow.innerHTML = styles + tpl;
+    static get observedAttributes() {
+        return [
+            'todo-list-id',
+            'todo-list-name',
+            'todo-list-count',
+            'todo-list-completed',
+            'edit'
+        ];
+    }
+
+    render() {
+        this.listID = this.getAttribute('todo-list-id');
+        this.listName = this.getAttribute('todo-list-name');
+        this.editMode = this.hasAttribute('edit');
+        this.totalCount = Number(this.getAttribute('todo-list-count'));
+        this.completedCount = Number(this.getAttribute('todo-list-completed'));
+
+        this.shadow.innerHTML = this.styles
+            + (this.editMode ? this.layouts.edit : this.layouts.default);
     }
 
     hydrate() {
