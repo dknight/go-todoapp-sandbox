@@ -85,13 +85,7 @@ class TodoListLink extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return [
-            'todo-list-id',
-            'todo-list-name',
-            'todo-list-count',
-            'todo-list-completed',
-            'edit'
-        ];
+        return ['edit'];
     }
 
     render() {
@@ -110,14 +104,14 @@ class TodoListLink extends HTMLElement {
             const form = this.shadow.querySelector('form');
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const formData = new FormData(form);
+                const data = new FormData(form);
                 const resp = await fetch(form.action, {
                     method: 'PUT',
-                    body: formData,
+                    body: data,
                 });
                 if (resp.ok) {
+                    this.setAttribute('todo-list-name', data.get('Name'));
                     this.removeAttribute('edit');
-                    this.setAttribute('todo-list-name', formData.get('Name'));
                 } else {
                     console.error(resp.statusText);
                 }

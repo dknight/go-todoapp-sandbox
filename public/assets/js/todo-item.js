@@ -6,25 +6,17 @@ class TodoItem extends HTMLElement {
     constructor() {
         super();
         this.shadow = this.attachShadow({mode: 'open'});
-        this.editMode = this.hasAttribute('edit');
-        console.log(html)
     }
 
-    async connectedCallback() {
-        const id = this.getAttribute('todo-id');
-        const datetime = this.getAttribute('todo-datetime');
-        const datetimeFormatted = new Intl.DateTimeFormat('et-EE', {
-            dateStyle: 'short',
-            timeStyle: 'short',
-        }).format(new Date(datetime));
-        const completed = this.hasAttribute('todo-completed');
-        const task = this.getAttribute('todo-task');
+    static get observedAttributes() {
+        return ['edit'];
+    }
 
-        const tpl = `
+    get styles() {
+        return `
             <style>
             :host {
               display: block;
-              margin: 1rem 0;
               padding: 1rem;
               border-radius: 5px;
             }
@@ -44,9 +36,9 @@ class TodoItem extends HTMLElement {
               text-decoration: line-through;
             }
             .actions {
-                display: flex;
-                gap: .5rem;
-                visibility: hidden;
+              display: flex;
+              gap: .5rem;
+              visibility: hidden;
             }
             :host(:hover) .actions {
                 visibility: visible;
@@ -69,6 +61,29 @@ class TodoItem extends HTMLElement {
             }
             .task-content {
               margin-top: .15rem;
+            }
+            .icon {
+              width: 1.4rem;
+              height: 1.4rem;
+              cursor: pointer;
+            }
+            .edit {
+              background: transparent url('/assets/img/edit.svg') center;
+              background-size: 100%;
+              filter: brightness(.9)
+                invert(.7)
+                sepia(.5)
+                hue-rotate(100deg)
+                saturate(200%);
+            }
+            .delete {
+              background: transparent url('/assets/img/delete.svg') center;
+              background-size: 100%;
+              filter: brightness(.9)
+                invert(.7)
+                sepia(.5)
+                hue-rotate(330deg)
+                saturate(3000%);
             }
             .edit-container {
               flex: 1;
@@ -101,30 +116,89 @@ class TodoItem extends HTMLElement {
               color: #f30;
             }
             </style>
+        `;
+    }
+
+    get layouts() {
+        return {
+            default: `
             <header>
-                <time datetime="${datetime}">${datetimeFormatted}</time>
+                <time datetime="${this.datetime}">
+                    ${this.datetimeFormatted}
+                </time>
                 <div class="actions">
-                    <a class="delete" href="/items/${id}">Delete</a>
-                    <a class="edit" href="/items/${id}">Edit</a>
+                    <a class="icon delete" href="/items/${this.todoID}"></a>
+                    <a class="icon edit" href="/items/${this.todoID}"></a>
                 </div>
             </header>
-            <form method="PUT" action="/items/${id}" class="task">
-                <input type="checkbox" name="Status" ${completed ? 'checked' :''} aria-label="Edit task">
-                <span class="task-content">${html(task)}</span>
-            </form>
-        `;
-        this.shadow.innerHTML = tpl;
+            <form method="PUT" action="/items/${this.todoID}" class="task">
+                <input type="checkbox" name="Status"
+                    ${this.completed ? 'checked' :''} aria-label="Edit task">
+                <span class="task-content">${html(this.task)}</span>
+            </form>`,
+            edit: `
+                <header>
+                    <time datetime="${this.datetime}">
+                        ${this.datetimeFormatted}
+                    </time>
+                    <div class="actions">
+                        <a class="delete" href="/items/${this.todoID}">Delete</a>
+                    </div>
+                </header>
+                <form method="PUT" action="/items/${this.todoID}" class="task">
+                    <input type="checkbox"
+                           name="Status"
+                           aria-label="Edit task"
+                           ${this.completed ? 'checked' :''}>
+                    <div class="edit-container">
+                        <input type="text"
+                            name="Task"
+                            id="edit-field-${this.todoID}"
+                            value="${this.task}"
+                            aria-label="Task name"
+                            class="edit-field"
+                            required>
+                        <select class="edit-field select-field"
+                            name="ListID" aria-label="Change list">
+                        </select>
+                        <label class="edit-hint" for="edit-field-${this.todoID}">
+                            Press Esc to cancel edit, Enter to save.
+                        </label>
+                    </div>
+                </form>
+            `
+        };
+    }
 
-        this.taskContentElem = this.shadow.querySelector('.task-content');
+    render() {
+        this.editMode = this.hasAttribute('edit');
+        this.todoID = this.getAttribute('todo-id');
+        this.listID = Number(this.getAttribute('todo-list-id'));
+        this.datetime = this.getAttribute('todo-datetime');
+        this.datetimeFormatted = new Intl.DateTimeFormat('et-EE', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+        }).format(new Date(this.datetime));
+        this.completed = this.hasAttribute('todo-completed');
+        this.task = this.getAttribute('todo-task');
 
+        this.shadow.innerHTML = this.styles +
+            (this.editMode ? this.layouts.edit : this.layouts.default);
+    }
+
+    hydrate() {
         this.deleteElem = this.shadow.querySelector('.delete');
         this.deleteElem.addEventListener('click', this.delete.bind(this));
 
         this.editElem = this.shadow.querySelector('.edit');
-        this.editElem.addEventListener('click', this.edit.bind(this));
+        if (this.editElem) {
+            this.editElem.addEventListener('click', this.edit.bind(this));
+        }
 
         this.editFormElem = this.shadow.querySelector('.task');
-        this.editFormElem.addEventListener('submit', this.update.bind(this));
+        if (this.editFormElem) {
+            this.editFormElem.addEventListener('submit', this.update.bind(this));
+        }
 
         this.statusCheckbox = this.shadow.querySelector('[type="checkbox"]');
         this.statusCheckbox.addEventListener('change', this.update.bind(this));
@@ -132,72 +206,34 @@ class TodoItem extends HTMLElement {
 
     async edit(e) {
         e.preventDefault();
-        this.editMode = true;
         this.setAttribute('edit', '');
-        const id = this.getAttribute('todo-id');
-        const listId = this.getAttribute('todo-list-id');
 
-        const editContainer = document.createElement('div');
-        editContainer.classList.add('edit-container');
+        const select = this.shadow.querySelector('select');
+        select.value = this.listID;
 
-        const input = document.createElement('input');
-        input.classList.add('edit-field');
-        input.type = 'text';
-        input.name = 'Task';
-        input.id = `edit-field-${id}`;
-        input.required = true;
-        input.value = this.taskContentElem.innerText;
-        input.focus();
-        input.setAttribute('aria-label', 'Edit task');
-
-        const select = document.createElement('select');
-        select.classList.add('edit-field', 'select-field');
-        select.name = 'ListID';
-        select.setAttribute('aria-label', 'Change list');
-        select.value = listId;
+        const input = this.shadow.querySelector('[name="Task"]');
 
         (async () => {
-            const resp = await fetch('/lists');
-            this.lists = await resp.json();
+            if (!this.lists) {
+                const resp = await fetch('/lists');
+                this.lists = await resp.json();
+            }
             this.lists.map((l) => {
                 const opt = document.createElement('option');
                 opt.value = l.ID;
                 opt.innerText = l.Name;
-                opt.selected = (Number(listId) === l.ID);
+                opt.selected = (this.listID === l.ID);
                 select.appendChild(opt);
             });
         })();
 
-        const hint = document.createElement('label');
-        hint.classList.add('edit-hint');
-        hint.innerText = 'Press Esc to cancel edit, Enter to save.'
-        hint.setAttribute('for', input.id);
-
-        editContainer.append(input);
-        editContainer.append(select);
-        editContainer.append(hint);
-
-        this.editFormElem.append(editContainer);
-
-        this.taskContentElem.hidden = true;
-        e.target.hidden = true;
-
-        this.removeAttribute('todo-completed');
-
         input.addEventListener('keydown', (e) => {
             if(e.key === 'Escape') {
-                this.taskContentElem.hidden = false;
-                this.editElem.hidden = false;
-                this.editMode = false;
                 this.removeAttribute('edit');
 
-                if (this.statusCheckbox.checked) {
-                    this.setAttribute('todo-completed', '');
-                } else {
-                    this.removeAttribute('todo-completed');
-                }
-                editContainer.remove();
-                return;
+                this.statusCheckbox.checked
+                    ? this.setAttribute('todo-completed', '')
+                    : this.removeAttribute('todo-completed');
             }
         });
     }
@@ -225,9 +261,13 @@ class TodoItem extends HTMLElement {
             ? this.setAttribute('todo-completed', '')
             : this.removeAttribute('todo-completed');
 
-        // If chekckbox is checked then just return.
+        // If checkbox is checked then just return.
         if (e.type === 'change') {
             return;
+        }
+
+        if (data.get('Task')) {
+            this.setAttribute('todo-task', data.get('Task'));
         }
 
         // If list is change move it to another list.
@@ -239,13 +279,7 @@ class TodoItem extends HTMLElement {
             newList.addItem(this);
         }
 
-        this.editElem.hidden = false;
-        this.taskContentElem.hidden = false;
-        if (data.get('Task')) {
-            this.taskContentElem.innerText = data.get('Task');
-        }
-        const container = this.shadow.querySelector('.edit-container');
-        container && container.remove();
+        this.removeAttribute('edit');
     }
 
     async delete(e) {
@@ -264,6 +298,19 @@ class TodoItem extends HTMLElement {
         } else {
             console.error(resp.statusText);
         }
+    }
+
+    connectedCallback() {
+        this.render();
+        this.hydrate();
+    }
+
+    attributeChangedCallback(oldValue, newValue) {
+        if (oldValue === newValue) {
+            return;
+        }
+        this.render();
+        this.hydrate();
     }
 }
 

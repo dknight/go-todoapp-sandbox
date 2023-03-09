@@ -10,6 +10,9 @@ class TodoList extends HTMLElement {
        return `
             <style>
               :host{}
+              h3 {
+                margin-block-end: .1rem;
+              }
             </style>`;
     }
 
@@ -24,6 +27,8 @@ class TodoList extends HTMLElement {
         let tpl = `<h3 class="heading">${html(this.listName)}</h3>`;
         if (items && items.length) {
             tpl += items.reduce((s, item) => s + this._renderItem(item), '');
+        } else {
+            tpl += '<p>The list is empty</p>';
         }
         tpl += '<hr>';
         this.shadow.innerHTML = this.styles + tpl;
